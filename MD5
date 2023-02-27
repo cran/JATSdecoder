@@ -1,4 +1,4 @@
-8a1fc42cb80c27edeed007f03c9ef031 *DESCRIPTION
+4230e8a0ea2f8777d77d7edc27e1d47a *DESCRIPTION
 243760d8c02c9d71eb06214562c85925 *NAMESPACE
 857c0b4733fe61a01649a315f3655d4e *R/JATS_get.abstract.R
 471f75b4e53fa6eba6beff00d17f819c *R/JATS_get.aff.R
@@ -18,7 +18,7 @@ f93fa5e451fbe73c9717c48fa37691cb *R/JATS_get.text.R
 533b941de055f2f504d615a0f7f1ea9e *R/JATS_get.title.R
 ffe3f4c1d2ae9b951dbc675a1c82a4aa *R/JATS_get.type.R
 e68191597a181219868fa43c43fa8b24 *R/JATS_get.vol.R
-989dd61305c45c03782125a4fec38dc1 *R/JATSdecoder.R
+fc47938f2141ba0ce1ffee42ea96a5d3 *R/JATSdecoder.R
 6333bc8900df0f33879ac7f5f94d2e48 *R/character_allStats.R
 f934f1d1bc4e7aedda0f9cce888a2439 *R/character_est.ss.R
 0b31c281986c5911e143cfc88fae09d6 *R/character_get.R.package.R
@@ -31,7 +31,7 @@ b00c3077b708e5274870b8b06bb09641 *R/character_get.outlier.def.R
 883361453211c2f400e42421d2d99920 *R/character_get.power.R
 fd5405ab4935eb4e264b7cc0282b30b1 *R/character_get.sig.adjectives.R
 cceb5f6b87b2fecfbd2d7f5054959943 *R/character_get.software.R
-98058fba740d91ec8879236dfa7b7e45 *R/character_get.stats.R
+ec7963cc8f0e7e83e11c0cdfde7337d3 *R/character_get.stats.R
 cb040e8ccb69062c2bebe8e1b2f71c1f *R/character_get.test.direction.R
 550561a15066e591937647b7f21eb542 *R/character_has.interaction.R
 de1ccef25aa743c2ee21324ec449ae2e *R/character_standardStats.R
@@ -45,8 +45,8 @@ c3c82ebcaa9852de1273c48960e4dada *R/helper_text2num.R
 468e03ff6c5719ae5261041330439cab *R/helper_text2sentences.R
 536428329fd295655522a5e7f4f7f8ec *R/helper_vectorize.text.R
 4f282420a06d256f4c7aed13f48aac29 *R/helper_which.term.R
-ee759ce70890fb1bfef40b1997f0c8f6 *R/study.character.R
-b6a70255be3c11fa50fd3886a9ef9af9 *man/JATSdecoder.Rd
+ebb346faaf3608a2109e9148ec7f3167 *R/study.character.R
+cce90e5b225ce3711573a8aa735002fc *man/JATSdecoder.Rd
 a35769f279fcc2823433f26e8211c492 *man/allStats.Rd
 59d6b81840a58d32ae9ee0cd2f16e06a *man/est.ss.Rd
 30ee77bd3e323587cda97c1bea636e36 *man/get.R.package.Rd
@@ -72,7 +72,7 @@ e7e2ba439e0e1d9e85c0e3c8b3e9edbd *man/get.references.Rd
 e789a62deef519b646b2d8179393e0b2 *man/get.sentence.with.pattern.Rd
 90ac79a16f4a0d452756717314e88b13 *man/get.sig.adjectives.Rd
 c5ce2cd470300cf990593d84a2723b46 *man/get.software.Rd
-5095671f1d3990a4fba1031a99bfd0a1 *man/get.stats.Rd
+6b0b5071946930a1cd522febae0e48a3 *man/get.stats.Rd
 b3ab75d4545cadf96b4bda4bf3929e3f *man/get.subject.Rd
 cf7698a802be37eb09127e6fb044840f *man/get.tables.Rd
 1dad26f7771401c017ed6baa981e8296 *man/get.test.direction.Rd
@@ -87,7 +87,7 @@ e5371a7cbb7c20f0af8f3a1f7ab48c34 *man/letter.convert.Rd
 5f741a0a8f6331baecd06d37f1ced70b *man/preCheck.Rd
 622b0b922efe6bc4b224e6b5ce527159 *man/standardStats.Rd
 3de9b124c809afe0948e4b0436b82a58 *man/strsplit2.Rd
-9cc5b38d8a9a79e15c5ce7be7e5149e5 *man/study.character.Rd
+666b13dfdd252e743505ab2e7ea4b5b7 *man/study.character.Rd
 eaf1ae28317f0678392af8761e27e87a *man/text2num.Rd
 d9b0a3867f703b9fc67d31e8cd56bf02 *man/text2sentences.Rd
 fa8878ff546f5a94c30c7cd7dac666b8 *man/vectorize.text.Rd
