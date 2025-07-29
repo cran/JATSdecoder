@@ -100,10 +100,13 @@ ifelse(sum(is.element(c("all","abstract"),output))>0,    abstract<-get.abstract(
 if(sum(is.element(c("all","sections"),output))>0) sections<-sections else sections<-NA
 if(sum(is.element(c("all","text"),output))>0) text<-text else text<-NA
 
-if(sum(is.element(c("all","tables"),output))>0)          tables<-as.vector(get.tables(x)) else tables<-NA
+tables<-NA
+#table2matrix==FALSE &
+if(sum(is.element(c("all","tables"),output))>0)          tables<-as.vector(get.tables(x))
+#if(table2matrix==TRUE & sum(is.element(c("all","tables"),output))>0)          tables<-table2matrix(x,letter.convert=letter.convert,rm.html=TRUE) 
 if(sum(is.element(c("all","captions"),output))>0)     captions<-as.vector(captions) else captions<-NA
 
-    if(sum(is.element(c("all","references"),output))>0) references<-as.vector(get.references(x,letter.convert=letter.convert,remove.html=T)) else references<-NA
+if(sum(is.element(c("all","references"),output))>0) references<-as.vector(get.references(x,letter.convert=letter.convert,remove.html=T)) else references<-NA
 
 ifelse(countryconnection==TRUE, countryconnections<-get.cons(country), countryconnections<-NA)
 ifelse(authorconnection==TRUE, authorconnections<-get.cons(author,max.items=25), authorconnections<-NA)

@@ -151,8 +151,8 @@ x<-gsub("&#x0223c;","~",x) # tilde
 x<-gsub("&#x002dc;","~",x) # tilde
 x<-gsub("&#x02261;","=",x) # identical to
 x<-gsub("&#x02245;","=~",x) # tilde full equal
-x<-gsub("&#x00026;","& ",x) #  &
-x<-gsub("&#x00023;","# ",x) #  # , num
+x<-gsub("&#x00026;","&",x) #  &
+x<-gsub("&#x00023;","#",x) #  # , num
 x<-gsub("&#x02026;","...",x) # ...
 x<-gsub("&#x02192;","->",x)# rightwards arrow
 x<-gsub("&#x025b8;","->",x)# rightwards arrow
@@ -209,6 +209,10 @@ x<-gsub("&x0037;","7",x) # DIGIT seven
 x<-gsub("&x0038;","8",x) # DIGIT eight
 x<-gsub("&x0039;","9",x) # DIGIT nine
 x<-gsub("&x0044;","D",x) #     LATIN CAPITAL LETTER D
+
+x<-gsub("\u0420","P",x) # cyrillic Er to P
+x<-gsub("\u0440","p",x) # cyrillic er to p
+
 x<-gsub("&#x00421;","C",x) #  CYRILLIC CAPITAL LETTER ES
 x<-gsub("&#x00406;","I",x) # CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I
 x<-gsub("&#x00441;","c",x) # CYRILLIC SMALL LETTER ES
@@ -984,7 +988,7 @@ x<-gsub("&#x0010e;","\u010e",x) # LATIN CAPITAL LETTER D WITH CARON
 }# End hexadecimal conversion
 
 ## unify some html letters  
-x<-gsub("&amp;","& ",x) #  &
+x<-gsub("&amp;","&",x) #  &
 x<-gsub("&lt;","<",x) # less than
 x<-gsub("&le;","<=",x) # less equal 
 x<-gsub("&gt;",">",x) # greater than
@@ -1034,8 +1038,11 @@ if(greek2text==TRUE){
 # alpha
 x<-gsub("\u03b1|\u0251|\u221d","alpha",x)
 # beta
-x<-gsub("\u03b2|\u03d0|\u1e9e","b",x)
+x<-gsub("\u03b2|\u03d0|\u1e9e|\u00DF","b",x)
 x<-gsub("\u0392","Beta",x)
+# unify minus/hyphen sign
+x<-gsub("\u2212|\u02D7|\u002D|\u2013","-",x)
+
 # r
 x<-gsub("\u027e","r",x)
 x<-gsub("\u211b","R",x)
@@ -1136,7 +1143,12 @@ check<-x
   x<-gsub("([^a-z])p \\\\","\\1p <",x)
 # convert "num 9 num" to num*num (for ANOVA)
   while(length(grep("[2-9] 9 [2-9]",x)>0)) x<-gsub("([2-9]) 9 ([2-9])","\\1*\\2",x)
-# chi2
+
+  # insert exponential sign for num*10^-num
+  x<-gsub("([0-9]) *(\\*) *(10) *(-[0-9])","\\1\\2\\3^\\4",x)
+  
+  
+  # chi2
   x<-gsub("chi 2","chi2",x)
   x<-gsub("chi\\^2|chi\u00B2","chi2",x)
   x<-gsub("v\\^2\\(","chi2(",x)
