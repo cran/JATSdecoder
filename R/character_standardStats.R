@@ -40,23 +40,53 @@ standardStats<-function(x,stats.mode="all",
                         rm.na.col=TRUE,
                         warnings=TRUE){
 # set warning massages to FALSE
-warn.T2t<-FALSE;warn.R2r<-FALSE;warn.r<-FALSE;warn.R2<-FALSE;warn.p<-FALSE;warn.d<-FALSE;warn.eta<-FALSE;warn.multi.p<-FALSE;warn.Zest<-FALSE; warn.ZestT<-FALSE 
+warn.T2t<-FALSE;warn.R2r<-FALSE;warn.r<-FALSE;warn.R2<-FALSE;warn.p<-FALSE;warn.d<-FALSE;warn.eta<-FALSE;warn.multi.p<-FALSE;warn.Zest<-FALSE; warn.ZestT<-FALSE; warn.multi.Zest<-FALSE 
 Zest<-FALSE;ZestT<-FALSE
 x<-unlist(x)
 # convert with all.stats() if has " [<=>] [0-9\\.-]"
 if(length(grep(" [<=>] [0-9\\.-]|[<=>] [0-9\\.-]",x))>0) x<-allStats(x)
-# get lines with operator-number
-x<-grep("[<=>]-*[\\.0-9]",x,value=TRUE)
 # escape
 if(length(x)==0) return(NULL)
+# get lines with operator-number
+x<-grep("[<=>]-*[\\.0-9]",x,value=TRUE)
 
 if(length(x)>0){
 # take copy for raw output
 y<-x
 # remove page number
 x<-gsub("[ \\(]p\\. [1-9][0-9]*","",x)  
+
+# remove citations (1800-2099)
+x<-gsub(" \\(1[8-9][0-9][0-9][,;] [A-z][^\\)<=>]*\\)","",x)
+x<-gsub(" \\(20[0-9][0-9][,;] [A-z][^\\)<=>]*\\)","",x)
+x<-gsub(" \\([A-z][^\\)<=>]*[,;] 1[8-9][0-9][0-9]\\)","",x)
+x<-gsub(" \\([A-z][^\\)<=>]*[,;] 20[0-9][0-9]\\)","",x)
+x<-gsub("[A-Z][a-z][a-z]* \\(20[0-9][0-9]\\) *[^<=>]","",x)
+x<-gsub("[A-Z][a-z][a-z]* \\(1[89][0-9][0-9]\\) *[^<=>]","",x)
+x<-gsub("et\\.* al\\.* \\(20[0-9][0-9]\\) *[^<=>]","",x)
+x<-gsub("et\\.* al\\.* \\(1[89][0-9][0-9]\\) *[^<=>]","",x)
+
+# reduce p(>F)->p
+x<-gsub("^[Pp] *\\([<=>]*\\|*-*[<=>]*[A-z][A-z2]*\\|*\\)([<=>])| [Pp] *\\([<=>]*\\|*-*[<=>]*[A-z][A-z2]*\\|*\\)([<=>])","p\\1\\2",x)
+
+# remove + in "=+number"
+x<-gsub("([<=>])\\+([\\.0-9])","\\1\\2",x)
+# remove <<~>> operator
+x<-gsub("<*<~>>* *[0-9]*"," ",x)
 # convert 10-num to 10^-num
-x<-gsub("([^0-9]10)(-[1-9][0-9]*)","\\1^\\2",x)  
+x<-gsub("([^0-9]10)(-[1-9][0-9]*)","\\1^\\2",x) 
+
+# remove num=text
+x<-gsub("[0-9][0-9]*[<=>][<=>]*[A-z][A-z]*","",x)
+
+# remove brackets if is followed by letter-anything except results
+x<-gsub(" \\(([A-z][^\\)]*)\\)([^<=>])"," \\1\\2",x)
+x<-gsub(" \\[([A-z][^]]*)\\]([^<=>])"," \\1\\2",x)
+
+# remove bracket with number and words and word in front of bracket "text (num text)"
+x<-gsub("[A-z][A-z][A-z]* \\([1-9][0-9]*[^0-9\\)] *[A-z][^\\)]*\\)[^<=>]"," ",x)
+x<-gsub("[A-z][A-z][A-z]* \\([1-9][0-9]*[^0-9\\)] *[A-z][^\\)]*\\)$","",x)
+
 # remove space between letter and (
 x<-gsub("([A-Za-z]) (\\([0-9Nnd])","\\1\\2",x)
 
@@ -90,7 +120,29 @@ x<-gsub("([0-9])\\^[A-z[:punct:]][A-z0-9]*","\\1",x)
      x[grep("^R\\(| R\\(|^R[<>=]| R[<>=]",x)]<-gsub("R","r",x[grep("^R\\(| R\\(|^R[<>=]| R[<>=]",x)])  
      }
      
-     
+
+## special handler for tabulated results extracted with tableParser
+# remove IVs in correlations from tables
+if(length(grep("<<~>>",x))>0) x<-gsub("[^=]*<<~>>[^:=]*: r","r",x)
+# remove t=num in lines with t=no digit and t=num with digit
+x<-gsub("^[tT]=[0-9][0-9]*[,; ]*(.* [tT]=-*[0-9]*\\.[0-9])","\\1",x)
+x<-gsub(" [tT]=[0-9][0-9]*[,; ]*(.* [tT]=-*[0-9]*\\.[0-9])","\\1",x)
+
+
+# remove r= in lines with l=num
+if(length(grep(" [Ll]=-*[\\.0-9]",x))>0){
+  x<-gsub(" [rR]=-*[\\.0-9][\\.0-9]*","",x)
+}
+# remove text behind p-value: e.g. p>t=1.2, pr (>|t|)
+x<-gsub(" p[<=>][<=>]*[A-z\\|\\(][^0-9,;:]*[A-z\\|\\)]*([<=>][<=>]*-*[\\.0-9])"," p\\1",x)
+x<-gsub("p\\([<=>]\\|*[A-z]\\|\\)([<=>])","p\\1",x)
+
+# remove non-p-values
+x<-gsub(" p[<=>][<=>]*[^0-9\\.][^0-9\\.]*([,; ])| p[<=>][<=>]*[^0-9\\.][^0-9\\.]*$","\\1 ",x)
+
+# remove subscripts
+x<-gsub("_[A-z0-9\\*-+]*","",x)
+
 # remove letter or number behind effect d
 x<-gsub(" d *[a-eg-zA-EG-Z0-9]([^a-zA-Z0-9])|^d *[a-eg-zA-EG-Z0-9]([^a-zA-Z0-9])"," d\\1\\2",x)
 # remove chi/letter=num
@@ -104,8 +156,10 @@ x<-gsub("delta [A-z][A-z]*[\\^2]*[<=>][<=>]*-*[0-9\\.][0-9\\.]*","",x)
 
  # remove percent value in brackets
    x<-gsub(" \\([0-9\\.]*\\%\\)","",x)     
+   # remove numbers in squared brackets if there is more than one letter in front
+   x<-gsub("([A-z][a-z]) \\[-*[0-9\\.][0-9\\.]*\\]","\\1",x)     
    # remove ")" in "), text...
-   x<-gsub("[\\)\\][;,] ([a-zA-Z])",", \\1",x)
+   #x<-gsub("[\\)\\][;,] ([a-zA-Z])",", \\1",x)
    # unify "[]" -> "()" ??
    x<-gsub("\\[","(", x)
    x<-gsub("\\]",")", x)
@@ -173,7 +227,17 @@ x<-unlist(lapply(x,percent2number))
    # add space between letter=letter
    x<-gsub("([a-zA-Z])=([a-zA-Z])","\\1 \\2",x)
    # convert prob to p
-   x<-gsub("[pP]robability|[pP]rob","p",x)
+   x<-gsub("[pP]robability|[pP]rob|( )[Pp]r *(\\()","\\1p\\2",x)
+   # remove Text in p<|Text|<num
+   x<-gsub("p[<=>][<=>]*[\\|-]*[A-z][A-z0-9_]*\\|*([<=>][<=>]*-*[\\.0-9])","p\\1",x)
+   x<-gsub("p\\(\\|*[<=>][<=>]*[\\|-]*[A-z][A-z]*\\)([<=>])","p\\1",x)
+   # remove non p-values
+   x<-gsub(" p[<=>][<=>]*[A-z][^<=>,;]*[,;] "," ",x)
+   # remove non-comma NUMBER in letter=NUMBER=number
+   x<-gsub("([A-z])=[1-9][0-9]*(=-*[0-9\\.][0-9\\.]*)","\\1\\2",x)
+   # remove letter-number in front of comma
+   x<-gsub(" [A-z][A-z0-9]*[0-9], "," ",x)
+   
    # remove brackets with letters, operator only
    x<-gsub("\\([a-zA-Z<>=]*\\)","",x)
    # remove brackets with letters, followed by numbers  only
@@ -208,6 +272,8 @@ x<-unlist(lapply(x,percent2number))
    x<-gsub("([a-z])-([A-Ra-z])","\\1 \\2",x) 
    # remove wrongly set "="
    x<-gsub("=(\\([0-9\\.,]*?\\)=)","\\1",x)
+   # remove wrongly set decimal "." between operators
+   x<-gsub("[<=>][<=>]*\\.([<=>][<=>]*-*[\\.0-9])","\\1",x)
    # unify eta2(p/g)
    x<-gsub("eta2\\([GgPp]\\)|eta\\([GgPp]\\)|eta\\([GPpg]\\)2|eta2[GPgp]","eta2",x)
    x<-gsub("eta G|eta\\([gG]\\)","eta",x)
@@ -224,12 +290,14 @@ x<-unlist(lapply(x,percent2number))
    
   # add coma after number followed by letter of staistic
    x<-gsub("([^a-z][0-9]) ([a-zA-z])","\\1, \\2",x)
- 
+   # remove "_" in fromt of number-anything in brackets   
+   x<-gsub("_(\\([0-9][^\\)]*\\))","\\1",x)
+   
 # correct f(df1,df2) -> F(df1,df2)
    x<-gsub("([^a-zA-Z])f(\\([0-9]*?,[ 0-9]*?\\))","\\1F\\2",x)
-   x<-gsub("([^a-zA-Z])f (\\([0-9]*?,[ 0-9]*?\\))","\\1F\\2",x)
+   x<-gsub("([^a-zA-Z])[Ff] (\\([0-9]*?,[ 0-9]*?\\))","\\1F\\2",x)
    x<-gsub("^f(\\([0-9]*?,[ 0-9]*?\\))","F\\1",x)
-   x<-gsub("^f (\\([0-9]*?,[ 0-9]*?\\))","F\\1",x)
+   x<-gsub("^[fF] (\\([0-9]*?,[ 0-9]*?\\))","F\\1",x)
    # remove all second results (.num.num)
    x<-gsub("(\\.[0-9]*?)\\.[0-9\\.]*","\\1",x)
    #   gsub("([<=>][\\.0-9]*?)[^a-zA-Z]*","\\1 ",x)
@@ -257,9 +325,12 @@ x<-unlist(lapply(x,percent2number))
   # remove ; in front of words
   x<-gsub("\\; ([a-zA-z]*? [a-zA-z]*? )"," \\1",x)
   
+  # remove 2 listed numbers in brackets with specific letters in front
+  x<-gsub("[BHItTUQ]\\(-*[0-9][0-9]*, -*[0-9][0-9]*\\)","",x)
+  
   # unify use of [0-9]^-[1-9] 
   if(length(grep("([0-9]*?)\\^\\-[0-9]",x))>0){
-    
+  
 # index
 i<-grep("([0-9]*?)\\^\\-[0-9]",x)
 v<-as.numeric(gsub(".*[^0-9\\.]","",gsub("([0-9]*?)\\^\\-[0-9\\.].*","\\1",x[i])))
@@ -279,6 +350,12 @@ if(length(i)>0) for(j in 1:length(i))  x[i[j]]<-gsub("([0-9\\.]*?)\\^\\-[0-9\\.]
 # remove second number after second operator: ps<.9<05/6 ->ps<.9
  x<-gsub("([0-9\\.][0-9])[<>=]+[0-9\\./]*","\\1",x)
  x<-gsub("([0-9\\.]/[0-9])[<>=]+[0-9\\./]*","\\1",x)
+ 
+ # remove brackets with no numbers
+ x<-gsub("  "," ",gsub("\\([^0-9]*\\)"," ",x))
+ # remove operator-minus letters
+ x<-gsub("[<>][<=>]*-[A-z][A-z]*","",x)
+ 
  
 # function to convert e num
 e2num<-function(x){
@@ -365,6 +442,8 @@ x<-gsub(" [bB]=[-\\.0-9]*, ([bB]eta=[-\\.0-9]*.* SE=[-\\.0-9]*),"," \\1",x)
 x<-gsub(" [bB]eta=[-\\.0-9]*, ([bB]=[-\\.0-9]*.* SE=[-\\.0-9]*),"," \\1",x)
 x<-gsub(" [bB]eta=[-\\.0-9]*, ([bB]eta=[-\\.0-9]*.* SE=[-\\.0-9]*),"," \\1",x)
 
+# remove num=text
+x<-gsub("[0-9][0-9]*[<=>][<=>]*[A-z][A-z]*","",x)
 
 # prepare results colnames
 cnames<-c("result","beta","SEbeta","t_op","t","d","SE","Z_op","Z","Zest","F_op","F","eta2","omega2","r_op","r","R2_op","R2","U_op","U","H_op","H","G2_op","G2","OR","RR","Chi2","Q_op","Q","df1","df2","BF10_op","BF10","BF_op","BF",
@@ -383,20 +462,22 @@ x<-gsub("  "," ",x)
 # unify Cohen's d
 x<-gsub("Cohen.s d.*?([<=>])","d\\1",x)
 x<-gsub("Cohens d.*?([<=>])","d\\1",x)
+# remove df=num in brackets
+x<-gsub("\\(df=([1-9][0-9\\.]*)\\)","(\\1)",x)
 
 # if has codedP extract
 if(length(grep(";; p[<=>]",x))>0){
    index<-grep(";; p[<=>]",x)
    # extract
    codedP<-suppressWarnings(as.numeric(gsub(".*;; p *[<=>][<=>]* *([0\\.]*[0-9][0-9]*).*","\\1",x[index])))
-   codedP_op<-gsub(".*;; p *([<=>][<=>]*) *[0\\.]*[0-9][0-9]*.*","\\1",x[index])
+   codedP_op<-gsub(".*;; p *([<=>][<=>]*) *([0\\.]*[0-9][0-9]*|NA).*","\\1",x[index])
    # add to res
    res[index,"codedP"]<-codedP
    res[index,"codedP_op"]<-codedP_op
    res[index,"result"]<-y[index]
    
    # remove codedP from x for further processing
-   x[index]<-gsub(";; p *[<=>][<=>]* *[0\\.]*[0-9][0-9]*","",x[index])
+   x[index]<-gsub(";; p *[<=>][<=>]* *([0\\.]*[0-9][0-9]*|NA)","",x[index])
 }
 
 
@@ -405,7 +486,7 @@ if(length(grep("^b[<=>]| b[<=>]",x))>0){
    index<-grep("^b[<=>]| b[<=>]",x)
    # extract
    beta<-suppressWarnings(as.numeric(gsub("[,; ].*","",unlist(lapply(strsplit(x[index]," b[<=>]|^b[<=>]"),"[",2)))))
-   SE<-suppressWarnings(as.numeric(gsub("[,; ].*","",gsub(".* SE[<=>][<=>]*|^SE[<=>][<=>]*","",x[index]))))
+   SE<-suppressWarnings(as.numeric(gsub(".* SE[<=>][<=>]*|^SE[<=>][<=>]*","",gsub("( SE[<=>][<=>]*[\\.0-9][\\.0-9]*)[^0-9\\.].*","\\1",x[index]))))
    # add to res
    res[index,"beta"]<-beta
    res[index,"SEbeta"]<-SE
@@ -413,7 +494,6 @@ if(length(grep("^b[<=>]| b[<=>]",x))>0){
    temp<-res
    if(estimateZ==TRUE) res[index,"Zest"]<-beta/SE
    if(!identical(temp,res)) Zest<-TRUE
-   
 }
 
 ## get d value
@@ -431,8 +511,8 @@ if(length(grep("^d[<=>]| d[<=>]",x))>0){
 if(length(grep("^d[<=>]| d[<=>]",x))>0&length(grep(" SE[<=>]|^t\\([0-9]| t\\([0-9]|[Zbzt]=",x))>0){
    index<-grep("^d[<=>]| d[<=>]",x)
    # extract
-   d<-suppressWarnings(as.numeric(gsub("[,; ].*","",gsub(".* d[<=>]*|^d[<=>]*","",x[index]))))
-   SE<-suppressWarnings(as.numeric(gsub("[,; ].*","",gsub(".* SE[<=>]*","",x[index]))))
+   d<-suppressWarnings(as.numeric(gsub("[,; ].*","",gsub(".* d[<=>][<=>]*|^d[<=>][<=>]*","",gsub("( d[<=>][<=>]*[\\.0-9][\\.0-9]*)[^0-9].*","\\1",x[index])))))
+   SE<-suppressWarnings(as.numeric(gsub(".* SE[<=>][<=>]*","",gsub("( SE[<=>][<=>]*[\\.0-9][\\.0-9]*)[^0-9\\.].*","\\1",x[index]))))
    # add to res
    res[index,"d"]<-d
    res[index,"SE"]<-SE
@@ -443,12 +523,12 @@ if(length(grep("^d[<=>]| d[<=>]",x))>0&length(grep(" SE[<=>]|^t\\([0-9]| t\\([0-
    
 }
 
-## if has SE but no beta or d extract SE
+## if has SE but no beta nor d extract SE
 if(length(grep(" SE[<=>]|^SE[<=>]",x))>0&length(grep("^b[<=>]| b[<=>]",x))==0&length(grep("^d[<=>]| d[<=>]",x))==0){
    index<-grep(" SE[<=>]|^SE[<=>]",x)
    
    # extract
-   SE<-suppressWarnings(as.numeric(gsub("[,; ].*","",gsub(".* SE[<=>][<=>]*|^SE[<=>][<=>]*","",x[index]))))
+   SE<-suppressWarnings(as.numeric(gsub(".* SE[<=>][<=>]*|^SE[<=>][<=>]*","",gsub("( SE[<=>][<=>]*[\\.0-9][\\.0-9]*)[^0-9\\.].*","\\1",x[index]))))
    # add to res
    res[index,"SE"]<-SE
    res[index,"result"]<-y[index]
@@ -468,9 +548,10 @@ if(length(index>0)){
   # take a copy
   tval2<-tval
   # remove till first t value if has 2
-  ft<-function(x){lapply(strsplit2(tval,"^t[<>=(]| t[<>=(]","before"),function(x) grep("^t[<>=(]| t[<>=(]",x,value=TRUE)[1])}
+  #ft<-function(x){lapply(strsplit2(tval,"^t[<>=(]| t[<>=(]","before"),function(x) grep("^t[<>=(]| t[<>=(]",x,value=TRUE)[1])}
+  ft<-function(x){lapply(strsplit2(tval,"^t[<>=][<>=]*-*[0-9\\.]| t[<>=][<>=]*-*[0-9\\.]|^t\\([1-9][0-9\\.]*\\)[<=>]| t\\([1-9][0-9\\.]*\\)[<=>]","before"),function(x) grep("^t[<>=][<>=]*-*[0-9\\.]| t[<>=][<>=]*-*[0-9\\.]|^t\\([1-9][0-9\\.]*\\)[<=>]| t\\([1-9][0-9\\.]*\\)[<=>]",x,value=TRUE)[1])}
   tval<-unlist(ft(tval))
-  tval<-gsub(".* t([(<>=])","t\\1",tval)
+  tval<-gsub(".* (t[<>=])|.* (t\\([1-9][0-9\\.]*\\)[<=>])","\\1\\2",tval)
   # remove "df=" from "(df="
   tval<-gsub("\\(df=([1-9])","(\\1",tval)
   # extract df
@@ -482,23 +563,27 @@ if(length(index>0)){
   ind<-which(is.element(grep(" df2*=",tval2),grep(" t\\([1-9]|^t\\([1-9]",tval,invert=TRUE)))
   if(length(ind)>0) tdf[ind]<-gsub(",;.*","",gsub("[^0-9\\.].*","",gsub(".* df2*=","",tval2[ind])))
   # get sign
-  sign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".* t([\\(=<>])","\\1",tval)))
-  # clean up t value
-  tval<-gsub("\\([0-9\\.,;]*\\)|\\]","",tval) # remove df within brackets
-  tval<-suppressWarnings(as.numeric(gsub(".*[=<>]","",gsub("[;,] .*| .*|[;,]$","",gsub(".*t[(<>=]|^t[(<>=]","",tval)))))
+  sign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".* t([\\=<>])|.* t\\([1-9][0-9\\.]*\\)([<=>])","\\1\\2",tval)))
+  # remove df within brackets
+  tval<-gsub("\\([0-9\\.,;]*\\)|\\]","",tval) 
+  # extract value
+  tval<-gsub(".*[=<>]","",gsub("[;,] .*| .*|[;,]$","",gsub(".*t[<>=]|^t[<>=]|.*t\\([1-9][0-9\\.]*\\)[<=>]|^t\\([1-9][0-9\\.]*\\)[<=>]","",tval)))
+  tval<-gsub("[^0-9]*$|([0-9])[^0-9\\.].*$","\\1",tval)
+  tval<-suppressWarnings(as.numeric(tval))
+  
+  sign[is.na(tval)]<-NA
   
   # insert results to res
   res[index,c("t_op","t","df2")]<-cbind(sign,tval,tdf)
   res[index,"result"]<-y[index]
 }
 
-# convert t to Zest if t-value but no df is detected and Zest wasn't computed before
+# copy t to Zest if t-value but no df is detected and Zest wasn't computed before
 if(estimateZ==TRUE){ 
    temp<-res
    index<-!is.na(res[,"t"])&is.na(res[,"df2"])&is.na(res[,"Zest"])
    res[index,"Zest"]<-res[index,"t"]
    if(!identical(temp,res)) ZestT<-TRUE
-   
 }   
 
 ## get F-value and its df1 and df2
@@ -537,13 +622,17 @@ res[ind,"result"]<-x[ind]
 
 
 ## extract F-values without (df1,df2)  in brackets
-index<-grep("^F[<=>][0-9\\.]| F[<=>][0-9\\.]|^F[<=>]{2}[0-9\\.]| F[<=>]{2}[0-9\\.]|^F[<=>]{3}[0-9\\.]| F[<=>]{3}[0-9\\.]",x)
+index<-grepl("^F[<=>][0-9\\.]| F[<=>][0-9\\.]|^F[<=>]{2}[0-9\\.]| F[<=>]{2}[0-9\\.]|^F[<=>]{3}[0-9\\.]| F[<=>]{3}[0-9\\.]",x)
+# but not in lines with A= an B=
+noA<-!grepl("A[<=>]",x)
+noB<-!grepl("B[<=>]",x)
+index<-which(index&noA&noB)
 # extract F
 if(length(index)>0){
 Fval<-x[index]
-sign<-sub(".*F([<=>]*).*","\\1",Fval)
+sign<-sub(".*F([<=>][<=>]*)[0-9\\.].*","\\1",Fval)
 # try get signs for those without sign yet
-sign[grep("^[<>=]",sign,invert=T)]<-sub("^F([<=>]*).*","\\1",Fval[grep("^[<>=]",sign,invert=T)])
+sign[grep("^[<>=]",sign,invert=T)]<-sub("^F([<=>][<=>]*).*","\\1",Fval[grep("^[<>=]",sign,invert=T)])
 # get df1= and df2= if has these
 df1<-rep(NA,length(Fval))
 df2<-rep(NA,length(Fval))
@@ -553,14 +642,14 @@ if(length(ind)>0) df1[ind]<-gsub("[^0-9\\.].*","",gsub(".*df1[=]","",Fval[ind]))
 ind<-grep("df2=",Fval)
 if(length(ind)>0) df2[ind]<-gsub("[^0-9\\.].*","",gsub(".*df2[=]","",Fval[ind]))
 
-if(length(grep("[^A-Za-z]F[<=>]*([0-9\\.]*)",Fval))>0) Fval<-(sub(".*F[<=>]*([0-9\\.]*).*","\\1",Fval))
-if(length(grep("^F[<=>]*([0-9\\.]*)",Fval))>0) Fval<-(gsub("^F[<=>]*([0-9\\.]*).*","\\1",Fval))
+if(length(grep("[^A-Za-z]F[<=>]*([0-9\\.]*)",Fval))>0) Fval<-(sub(".*F[<=>][<=>]*([0-9\\.][0-9\\.]*).*","\\1",Fval))
+if(length(grep("^F[<=>]*([0-9\\.]*)",Fval))>0) Fval<-(gsub("^F[<=>][<=>]*([0-9\\.][0-9\\.]*).*","\\1",Fval))
 Fval<-suppressWarnings(as.numeric(Fval))
 
 # has F value without dfs? than don't compute pF
 # if(length(Fval)==!is.na(df2)) 
 
-# don't overwrite dfs (here copy value if not NA)
+# don't overwrite dfs (copy value if not NA)
 if(length(index)==1){
 df2[which(!is.na(res[index,"df2"]))]<-res[index,"df2"][!is.na(res[index,"df2"])]
 df1[which(!is.na(res[index,"df1"]))]<-res[index,"df1"][!is.na(res[index,"df1"])]
@@ -570,6 +659,7 @@ df2[which(!is.na(res[index,"df2"]))]<-res[index,][!is.na(res[index,"df2"]),"df2"
 df1[which(!is.na(res[index,"df1"]))]<-res[index,][!is.na(res[index,"df1"]),"df1"]
 }
 
+sign[is.na(Fval)]<-NA
 
 # insert results to res
 res[index,c("F_op","F","df1","df2")]<-cbind(sign,Fval,df1,df2)
@@ -611,6 +701,8 @@ df1[is.na(df2)]<-NA
 df2[is.na(df1)]<-NA
 Fval[is.na(df1)]<-NA
 sign[is.na(df1)]<-NA
+
+sign[is.na(Fval)]<-NA
 
 # insert results to res
 res[index,c("F_op","F","df1","df2")]<-cbind(sign,Fval,df1,df2)
@@ -670,11 +762,13 @@ x<-gsub("rho|r[Ss][Pp]|corr|cor","r",x)
 index<-grep("[\\( ]r[<=>]|^r[<=>]|[\\( ]r \\([0-9]|^r \\([1-9]|[\\( ]r\\([0-9]|^r\\([1-9]",x)
 if(length(index)>0){
 r<-x[index]
-# get df if has one
+# remove bracket in front of r
+r<-gsub("\\(r","r",r)
+# get df if has df in brackets
 rdf<-rep(NA,length(r))
 idf<-grep("[^a-z]r\\([1-9]|^r\\([1-9]",r)
 if(length(idf)>0){
-  rdf[idf]<-gsub("[^0-9\\.].*","",unlist(lapply(strsplit(r[idf],"r\\("),"[",2)))
+  rdf[idf]<-gsub("[^0-9\\.].*","",unlist(lapply(strsplit(r[idf]," r\\(|^r\\("),"[",2)))
 }
 
 # overwrite df if has df=
@@ -686,14 +780,16 @@ r<-gsub("\\([0-9\\.]*?\\)","",r)
 # remove N=
 r<-gsub("[Nn]=","",r)
 
-r<-gsub(".*? r(=)"," r\\1",r)
-r<-gsub(".*? r(<)"," r\\1",r)
-r<-gsub(".*? r(>)"," r\\1",r)
+# split and select first r[<=>]
+r<-unlist(lapply(strsplit(r,"[,; ]"),function(x) grep(" r[<>=]|^r[<=>]",x,value=TRUE)[1]))
 
 # get sign
-rsign<-gsub("[^<>=].*","",gsub("r","",unlist(lapply(strsplit(r,"[,; ]"),function(x) grep("r[<>=]",x,value=TRUE)[1]))))
+rsign<-gsub("[^<>=].*","",gsub("r","",r))
 # get r value
 r<-suppressWarnings(as.numeric(gsub("[^0-9\\.-].*","",gsub("[<=>]","",unlist(lapply(strsplit(r,"r[<=>]"),"[",2))))))
+
+rsign[is.na(r)]<-NA
+
 # add to results
 res[index,"r_op"]<-rsign
 res[index,"r"]<-r
@@ -715,15 +811,15 @@ Hdf<-rep(NA,length(H))
 if(length(grep("[^a-z]H\\([1-9]|^H\\([1-9]",H))>0){
   Hdf[grep("[^a-z]H\\([1-9]|^H\\([1-9]",H)]<-gsub("\\).*","",gsub(".*H\\(","",H[grep("[^a-z]H\\([1-9]|^H\\([1-9]",H)]))
 }
-H<-gsub("[(][1-9].*?H(=)","\\1",H)
-H<-gsub("[(][1-9].*?H(<)","\\1",H)
-H<-gsub("[(][1-9].*?H(>)","\\1",H)
-# remove df in brackets
-H<-gsub("\\([0-9]*?\\)","",H)
+
+# remove everything in brackets
+H<-gsub("\\([0-9A-z][^\\)]*\\)","",H)
 # get sign
 Hsign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*H([\\(=<>])","\\1",H)))
 # get H value
 H<-suppressWarnings(as.numeric(gsub("[^0-9\\.-].*","",gsub("[<=>]","",unlist(lapply(strsplit(H,"H[<=>]"),"[",2))))))
+
+Hsign[is.na(H)]<-NA
 # add to results
 res[index,"H_op"]<-Hsign
 res[index,"H"]<-H
@@ -759,6 +855,9 @@ G2<-gsub("\\([0-9]*?\\)","",G2)
 G2sign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*G2([\\(=<>])","\\1",G2)))
 # get G2 value
 G2<-suppressWarnings(as.numeric(gsub("[^0-9\\.-].*","",gsub("[<=>]","",unlist(lapply(strsplit(G2,"G2[<=>]"),"[",2))))))
+
+G2sign[is.na(G2)]<-NA
+
 # add to results
 res[index,"G2_op"]<-G2sign
 res[index,"G2"]<-G2
@@ -789,6 +888,9 @@ R2sign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*R2([\\(=<>])","\\1
 R2<-gsub("[<=>]","",gsub(".*?[<=>](.+)", "\\1",unlist(lapply(strsplit(R2,"R2"),"[",2))))
 # remove text behind number %num-.[^-0-9\\.%]
 R2<-gsub("[^-0-9\\.%].*","",R2)
+
+R2sign[is.na(R2)]<-NA
+
 # add to results
 res[index,"R2"]<-R2
 res[index,"R2_op"]<-R2sign
@@ -804,14 +906,18 @@ index<-grep("[^A-Za-z]U[(=]|^U[(=]",x)
 if(length(index)>0){
    Uval<-x[index]
    # get sign
-Usign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*U([\\(=<>])","\\1",Uval)))
+   Usign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*U([\\(=<>])","\\1",Uval)))
 
-# extract U value
-Uval<-suppressWarnings(as.numeric(gsub("[^0-9\\.-].*","",gsub(".*U=|.*U[(][0-9].*?=","", Uval))))
-# add U values to res
-res[index,c("U")]<-Uval
-res[index,c("U_op")]<-Usign
-res[index,"result"]<-y[index]
+   # extract U value
+   Uval<-gsub("[^0-9\\.-].*","",gsub(".*U=|.*U[\\(][A-z0-9][^\\)]*\\)=","", Uval))
+   Uval<-suppressWarnings(as.numeric(Uval))
+   
+   Usign[is.na(Uval)]<-NA
+   
+   # add U values to res
+   res[index,c("U")]<-Uval
+   res[index,c("U_op")]<-Usign
+   res[index,"result"]<-y[index]
 }
 
 ## extract p value
@@ -820,7 +926,8 @@ index<-grep("[\\(\\[ ]p[(<>=]|^p[(<>=]",x)
 if(length(index)>0){
 pval<-x[index]
 pval<-gsub("^p","temp p",pval)
-pval<-gsub("^( p[<>=\\.0-9]*)[^<>=\\.0-9].*","\\1",unlist(lapply(strsplit2(pval," p[<=>]","before"),"[",2)))
+pval<-gsub("^( p[<>=\\.0-9]*)[^<>=\\.0-9].*","\\1",
+           unlist(lapply(strsplit2(pval," p[<=>][\\.0-9]","before"),"[",2)))
 #pval<-unlist(lapply(strsplit2(pval," p[<=>]","before"),"[",2))
 pval<-gsub("([0-9])[^0-9\\.].*","\\1",pval)
 pval<-gsub(".*p[=]","=",pval)
@@ -832,6 +939,9 @@ psign<-gsub("[^<>=].*","",psign)
 pval<-gsub("[<>=]","",pval)
 # remove everything behind non number or dot
 pval<-suppressWarnings(as.numeric(gsub("[^0-9\\.].*","",pval)))
+
+psign[is.na(pval)]<-NA
+
 # add p values to res
 res[index,c("p_op")]<-psign
 res[index,c("p")]<-pval
@@ -896,6 +1006,8 @@ BFsign<-sign
 BFsign[(type=="01")&sign=="<"]<-">"
 BFsign[(type=="01")&sign==">"]<-"<"
 
+BFsign[is.na(BF)]<-NA
+
 # add BayesFactor values to res
 res[index,c("BF10")]<-BF
 res[index,"BF10_op"]<-BFsign
@@ -912,6 +1024,9 @@ BF<-gsub(".*BF[>]|.*BF\\([0-9]*?\\)[>]",">",BF)
 BF<-gsub(".*BF[<]|.*BF\\([0-9]*?\\)[<]","<",BF)
 BFsign<-gsub("[^<=>].*","",BF)
 BF<-suppressWarnings(as.numeric(gsub("[<=>]","",gsub("[,; ].*","",BF))))
+
+BFsign[is.na(BF)]<-NA
+
 # add BF values to res
 res[index,c("BF")]<-BF
 res[index,c("BF_op")]<-BFsign
@@ -962,20 +1077,29 @@ res[index,"result"]<-y[index]
 
 ## extract Z value
 # lines with Z value
-index<-grep("[\\(\\[ ][zZ][(<>=]|^[zZ][(<>=]",x)
-if(length(index)>0){
-   Zval<-x[index]
-Zval<-gsub(".*[zZ][=]|.*[zZ]\\([0-9]*?\\)[=]","=",Zval)
-Zval<-gsub(".*[zZ][>]|.*[zZ]\\([0-9]*?\\)[>]",">",Zval)
-Zval<-gsub(".*[zZ][<]|.*[zZ]\\([0-9]*?\\)[<]","<",Zval)
-Zsign<-substr(Zval,1,3)
-Zsign<-gsub("[^<=>].*","",Zsign)
-Zval<-suppressWarnings(as.numeric(gsub("[<=>]","",gsub("[,; ].*","",Zval))))
+index<-grepl("[\\(\\[ ][zZ][(<>=][<=>]*-*[0-9\\.]|^[zZ][(<>=][<=>]*-*[0-9\\.]",x)
+# but without x= and y= (3d coordinates)
+noX<-!grepl("y[<=>]-*[0-9\\.]",x)
+noY<-!grepl("x[<=>]-*[0-9\\.]",x)
+index<-which(index&noX&noY)
 
-# add Z values to res
-res[index,c("Z")]<-Zval
-res[index,c("Z_op")]<-Zsign
-res[index,"result"]<-y[index]
+if(length(index)>0){
+  Zval<-x[index]
+  Zval<-gsub(".*[zZ][=]|.*[zZ]\\([0-9]*?\\)[=]","=",Zval)
+  Zval<-gsub(".*[zZ][>]|.*[zZ]\\([0-9]*?\\)[>]",">",Zval)
+  Zval<-gsub(".*[zZ][<]|.*[zZ]\\([0-9]*?\\)[<]","<",Zval)
+  Zval<-gsub("^([<=>][<=>]*-*[0-9\\.][0-9\\.]*)[^0-9\\.].*","\\1",Zval)
+  Zsign<-substr(Zval,1,3)
+  Zsign<-gsub("[^<=>].*","",Zsign)
+  Zval<-suppressWarnings(as.numeric(gsub("[<=>]","",gsub("[,; ].*","",Zval))))
+  
+  # set badly operator to NA in bad captured
+  Zsign[is.na(Zval)]<-NA
+
+  # add Z values to res
+  res[index,c("Z")]<-Zval
+  res[index,c("Z_op")]<-Zsign
+  res[index,"result"]<-y[index]
 }
 
 ## extract Q and df
@@ -985,7 +1109,8 @@ x<-gsub("q","Q",x)
 x<-gsub("[^a-zA-Z]Q"," Q",x)
 
 # remove text from Q_text(12)=
-if(length(grep("^Q[A-Za-z]|[\\(\\[ ]Q[A-Za-z]",x))>0) x[grep("^Q[A-Za-z]| Q[A-Za-z]",x)]<-gsub("Q[A-Za-z]*?([\\(=])","Q\\1",x[grep("^Q[A-Za-z]|[\\(\\[ ]Q[A-Za-z]",x)])
+x[grep("^Q_[A-Za-z]|[\\(\\[ ]Q_[A-Za-z]",x)]<-
+  gsub("Q_[A-Za-z]*([\\(=])","Q\\1",x[grep("^Q_[A-Za-z]|[\\(\\[ ]Q_[A-Za-z]",x)])
 
 index<-grep("[\\(\\[ ]Q[<=>(]|^Q[<=>(]",x)
 if(length(index)>0){
@@ -1004,12 +1129,15 @@ if(length(ind)>0) Qdf[ind]<-gsub("[^0-9\\.].*|\\).*","",gsub(".*Q[(][Nn]=[0-9]*[
 ind<-grep("Q[(][0-9]*?[,;] [Nn][=]",Q)
 if(length(ind)>0) Qdf[ind]<-gsub("[^0-9\\.].*|\\).*","",gsub(".*Q[(]","",Q[ind]))
 
-# remove df in brackets
-Q<-gsub("\\([0-9]*?\\)","",Q)
+# remove everything in brackets
+Q<-gsub("\\([A-z0-9][^\\)]*?\\)","",Q)
 # get sign
 Qsign<-gsub("[^<>=].*","",sub("[^<>=]*([=<>])", "\\1",sub(".*Q([\\(=<>])","\\1",Q)))
 # get Q value
 Q<-suppressWarnings(as.numeric(gsub("[^0-9\\.-].*","",gsub("[<=>]","",unlist(lapply(strsplit(Q,"Q[<=>]"),"[",2))))))
+
+Qsign[is.na(Q)]<-NA
+
 # add to results
 res[index,"Q_op"]<-Qsign
 res[index,"result"]<-y[index]
@@ -1024,6 +1152,12 @@ res[index,c("df1")][i2]<-cbind(Qdf)[i2]
 ############
 ## clean up
 ##########
+# remove estimated Z if has t and df
+#if(length(res[,"Zest"][!is.na(res[,"t"])&!is.na(res[,"df2"])])>0){
+#  res[,"Zest"][!is.na(res[,"t"])&!is.na(res[,"df2"])]<-NA
+#  }
+  
+
 # set bad captures in df1 and df2 to NA   
 if(length(grep("[^0-9\\.]",res[,"df1"]))>0) res[grep("[^0-9\\.]",res[,"df1"]),"df1"]<-NA
 if(length(grep("[^0-9\\.]",res[,"df2"]))>0) res[grep("[^0-9\\.]",res[,"df2"]),"df2"]<-NA
@@ -1036,7 +1170,7 @@ if(is.vector(res)){
    colnames(res)<-cnames
    }
 
-
+  
 
 #######################
 ## recalculate p-value 
@@ -1078,10 +1212,11 @@ recalculatedPZ[is.na(recalculatedPZ)]<-recalculatedPZest[is.na(recalculatedPZ)]
 recalculatedPZl[is.na(recalculatedPZl)]<-recalculatedPZlest[is.na(recalculatedPZl)]
 recalculatedPZg[is.na(recalculatedPZg)]<-recalculatedPZgest[is.na(recalculatedPZg)]
 
-# take the most conservative (highest) p value if 2 or more were calculated
+# combine all recalculated p-values
 d<-data.frame(recalculatedPt,recalculatedPF,recalculatedPr,recalculatedPchi,recalculatedPZ,recalculatedPH,recalculatedPG2,recalculatedPQ)
 # has multiple recomputable p-values
-if(sum(rowSums(!is.na(d))>1)>0) warn.multi.p<-TRUE
+if(sum((rowSums(!is.na(d[,-5]))>1))>0) warn.multi.p<-TRUE
+if(sum(rowSums(!is.na(d[,-5]))>0&!is.na(d[,5]))>0) warn.multi.Zest<-TRUE 
 
 # get p value by rank t, F, r, chi, Z, H, G2, Q
 recalculatedP<-NULL
@@ -1245,9 +1380,11 @@ if(warn.p==TRUE) report<-c(report,"- One or more detected p-values are out of ra
 if(warn.d==TRUE) report<-c(report,"- A rather big effect was detected. One or more |d|-values > 1.\n")
 if(warn.eta==TRUE) report<-c(report,"- A rather big effect was detected. One or more eta^2-values > .3.\n")
 if(warn.multi.p==TRUE) report<-c(report,"- There are one or more results with several recomputable test statistics. Please split the result manually and proceed checking.\n")
-if(warn.Zest==TRUE) report<-c(report,"- Z-value estimation was performed by beta/SE, d/SE to recalculate p-values. This estimation is biased in small samples and may be the cause for deviations to the reported p-values.\n")
-if(warn.ZestT==TRUE) report<-c(report,"- Reported t-values with no degrees of freedom were treated as Z-values to recalculate p-values. This estimation is biased in small samples and may be the cause for deviations to the reported p-values.")
+if(warn.Zest==TRUE) report<-c(report,"- Z-value estimation was performed by Z=beta/SE, Z=d/SE or t=Z to recalculate p-values. This estimation is biased in small samples and may be the cause for deviations to the reported p-values.\n")
+if(warn.ZestT==TRUE) report<-c(report,"- Reported t-values with no degrees of freedom were treated as Z-values to recalculate p-values. This estimation is biased in small samples and may be the cause for deviations to the reported p-values.\n")
+if(warn.multi.Zest==TRUE) report<-c(report,"- The recalculation of p-values was not performed on estimated Z-values whenever other standard statistics allow a recomputation (e.g. t-value with df).\n")
    
+report[length(report)]<-gsub("\\n$","",report[length(report)])
 if(warnings==TRUE&!is.null(report)) warning(report,call.=FALSE)
    
    # prepare output
