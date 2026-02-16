@@ -1,4 +1,4 @@
-e07e6cccc0cda653a5777e02e732845a *DESCRIPTION
+2028dd512506c101aa33e0fce44b3ef5 *DESCRIPTION
 9ae6c875e9350ee8a86ac48d4dddb6e9 *NAMESPACE
 857c0b4733fe61a01649a315f3655d4e *R/JATS_get.abstract.R
 471f75b4e53fa6eba6beff00d17f819c *R/JATS_get.aff.R
@@ -22,7 +22,7 @@ e68191597a181219868fa43c43fa8b24 *R/JATS_get.vol.R
 5d9e4686a5efe68c20a16300c0a1db05 *R/character_allStats.R
 f934f1d1bc4e7aedda0f9cce888a2439 *R/character_est.ss.R
 0b31c281986c5911e143cfc88fae09d6 *R/character_get.R.package.R
-21549356bde64227cf6c7de29e2a1e8b *R/character_get.alpha.error.R
+bdaeb602d8d99257d5526d81ce7419b4 *R/character_get.alpha.error.R
 59d2f8d9f49fa66cb164f6aaec4c82dc *R/character_get.assumption.R
 f2b5d85616635a3a2144a8bae3ed8ed5 *R/character_get.method.R
 494e8bcb708de37b26a97e789fa13aca *R/character_get.multi.comparison.R
@@ -34,11 +34,11 @@ cceb5f6b87b2fecfbd2d7f5054959943 *R/character_get.software.R
 1b9fb0c0f7f733c692bedcd0d3d5dbac *R/character_get.stats.R
 cb040e8ccb69062c2bebe8e1b2f71c1f *R/character_get.test.direction.R
 550561a15066e591937647b7f21eb542 *R/character_has.interaction.R
-e362296ba5fe7d0676e9a2675ec7f6f4 *R/character_standardStats.R
+5f3eacc4620ae8ab954239ef44c020fd *R/character_standardStats.R
 744fdf087b8c774d99d52b8af35f62c2 *R/helper_Pcheck.R
 6b7665464f2ea1178159552d393486e1 *R/helper_get.sentence.with.pattern.R
 05a6f9e1e2d2692d172854b9e6c44bdb *R/helper_grep2.R
-5986ec8e6bbb75fad9e256a169974161 *R/helper_letter.convert.R
+9e30d2fb573ccd472a17e4aa1d311523 *R/helper_letter.convert.R
 2714942adf843d466836ae4031b4bd30 *R/helper_ngram.R
 d6fa315f5ac118037ee53ea2eb5191e1 *R/helper_preCheck.R
 3e9d3c830d984db96c2e59d1287fe309 *R/helper_strsplit2.R
