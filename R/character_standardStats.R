@@ -104,13 +104,13 @@ x<-gsub("[A-Za-z]chi[a-z]","",x)
 # remove stars behind number
 x<-gsub("([0-9])\\^*\\*\\**([^\\*0-9\\.])","\\1\\2",x)
 # remove superscripted text behind number
-x<-gsub("([0-9])\\^[A-z[:punct:]][A-z0-9]*","\\1",x)
+x<-gsub("([0-9])\\^[A-z[,;\\^']][A-z0-9]*","\\1",x)
 
 # capital T to small t
    if(isTRUE(T2t)){
      # need warning for T2t?
-     if(length(grep("T",x))>0) warn.T2t<-TRUE
-     x<-gsub("T","t",x)  
+     if(length(grep("T[^A-z ]*[<=>]",x))>0) warn.T2t<-TRUE
+     x<-gsub("T([^A-z ]*[<=>])","t\\1",x)  
      }
 
 # capital R to small r
@@ -420,6 +420,7 @@ x<-unlist(strsplit2(x,"[^-\\.0-9][-\\.0-9]*?\\^[-\\.0-9]","before"))
     # clean up
     x<-gsub("  "," ",x)
     x<-gsub(" , ",", ",x)
+    x<-gsub(" \\*([0-9])","*\\1",x)
     x<-gsub(" \\.$|,\\.",".",x)
 }
     return(x)
@@ -597,6 +598,7 @@ if(isTRUE(estimateZ)){
    index<-!is.na(res[,"t"])&is.na(res[,"df2"])&is.na(res[,"Zest"])
    res[index,"Zest"]<-res[index,"t"]
    if(!identical(temp,res)) ZestT<-TRUE
+   #if(length(index)>0) ZestT<-TRUE
 }   
 
 ## get F-value and its df1 and df2
@@ -1100,9 +1102,9 @@ index<-which(index&noX&noY)
 
 if(length(index)>0){
   Zval<-x[index]
-  Zval<-gsub(".*[zZ][=]|.*[zZ]\\([0-9]*?\\)[=]","=",Zval)
-  Zval<-gsub(".*[zZ][>]|.*[zZ]\\([0-9]*?\\)[>]",">",Zval)
-  Zval<-gsub(".*[zZ][<]|.*[zZ]\\([0-9]*?\\)[<]","<",Zval)
+  Zval<-gsub("^[zZ][=]|.*[^A-z][zZ][=]|.*[^A-z][zZ]\\([0-9]*\\)[=]","=",Zval)
+  Zval<-gsub("^[zZ][>]|.*[^A-z][zZ][>]|.*[^A-z][zZ]\\([0-9]*?\\)[>]",">",Zval)
+  Zval<-gsub("^[zZ][<]|.*[^A-z][zZ][<]|.*[^A-z][zZ]\\([0-9]*?\\)[<]","<",Zval)
   Zval<-gsub("^([<=>][<=>]*-*[0-9\\.][0-9\\.]*)[^0-9\\.].*","\\1",Zval)
   Zsign<-substr(Zval,1,3)
   Zsign<-gsub("[^<=>].*","",Zsign)
@@ -1292,7 +1294,7 @@ colnames(res)<-cnames
 }
 
 # only select stats with p value and recomputable p value
-if(stats.mode=="checkable") res<-res[!is.na(res[,"recalculatedP"])&!is.na(res[,"p"]),]
+if(stats.mode=="checkable") res<-res[(!is.na(res[,"recalculatedP"])&!is.na(res[,"p"]))|(!is.na(res[,"recalculatedP"])&!is.na(res[,"codedP"])),]
 if(!is.matrix(res)){
 res<-matrix(res,1)
 colnames(res)<-cnames

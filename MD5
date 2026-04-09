@@ -1,4 +1,4 @@
-2028dd512506c101aa33e0fce44b3ef5 *DESCRIPTION
+85a757418f69a9c585fa6a596d6f5fac *DESCRIPTION
 9ae6c875e9350ee8a86ac48d4dddb6e9 *NAMESPACE
 857c0b4733fe61a01649a315f3655d4e *R/JATS_get.abstract.R
 471f75b4e53fa6eba6beff00d17f819c *R/JATS_get.aff.R
@@ -19,7 +19,7 @@ f93fa5e451fbe73c9717c48fa37691cb *R/JATS_get.text.R
 ffe3f4c1d2ae9b951dbc675a1c82a4aa *R/JATS_get.type.R
 e68191597a181219868fa43c43fa8b24 *R/JATS_get.vol.R
 0261d55f16e0793640319029c86fd2c0 *R/JATSdecoder.R
-5d9e4686a5efe68c20a16300c0a1db05 *R/character_allStats.R
+e9ac28be3a3d66331d4c6ce142ab0f7a *R/character_allStats.R
 f934f1d1bc4e7aedda0f9cce888a2439 *R/character_est.ss.R
 0b31c281986c5911e143cfc88fae09d6 *R/character_get.R.package.R
 bdaeb602d8d99257d5526d81ce7419b4 *R/character_get.alpha.error.R
@@ -31,10 +31,10 @@ b00c3077b708e5274870b8b06bb09641 *R/character_get.outlier.def.R
 883361453211c2f400e42421d2d99920 *R/character_get.power.R
 fd5405ab4935eb4e264b7cc0282b30b1 *R/character_get.sig.adjectives.R
 cceb5f6b87b2fecfbd2d7f5054959943 *R/character_get.software.R
-1b9fb0c0f7f733c692bedcd0d3d5dbac *R/character_get.stats.R
+804f7c04ef224ed7d771bbb2800f5a0a *R/character_get.stats.R
 cb040e8ccb69062c2bebe8e1b2f71c1f *R/character_get.test.direction.R
 550561a15066e591937647b7f21eb542 *R/character_has.interaction.R
-5f3eacc4620ae8ab954239ef44c020fd *R/character_standardStats.R
+b30ba5a29cdfafc220adcff91d93704f *R/character_standardStats.R
 744fdf087b8c774d99d52b8af35f62c2 *R/helper_Pcheck.R
 6b7665464f2ea1178159552d393486e1 *R/helper_get.sentence.with.pattern.R
 05a6f9e1e2d2692d172854b9e6c44bdb *R/helper_grep2.R
